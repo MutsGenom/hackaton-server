@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { FilesService } from '../files/files.service';
 import * as XLSX from 'xlsx';
+import { parseFromYearStatistic, parserToRegionData } from 'src/parsers/parser';
 
 @Injectable()
 export class DatasetService {
@@ -16,12 +17,16 @@ export class DatasetService {
     switch (readAs) {
       case 'xlsx':
         const wb = XLSX.read(file, { type: 'buffer' });
-        console.log(wb);
+        const sheets = parserToRegionData(wb);
+        return sheets;
       case 'csv':
         const csv = XLSX.read(file, { type: 'buffer' });
         console.log(csv);
         return csv;
-
+      case 'yearsStat':
+        const forYears = XLSX.read(file, { type: 'buffer' });
+        const sheetsForYear = parseFromYearStatistic(forYears);
+        return sheetsForYear;
       default:
         return file;
     }
