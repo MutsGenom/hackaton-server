@@ -31,4 +31,12 @@ export class DatasetController {
   ) {
     return this.datasetService.returnDataset(fileName, readAs);
   }
+  @Get('/page/:fileName/:readAs/:page')
+  getByDatasetFromSection(
+    @Param('fileName') fileName: string,
+    @Param('readAs') readAs: string,
+    @Param('page') page: string,
+  ) {
+    return this.datasetService.returnDataset(fileName, readAs, page);
+  }
 }
