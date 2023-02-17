@@ -44,8 +44,8 @@ export class FilesService {
   async returnFile(fileName: string) {
     try {
       const filePath = path.resolve(__dirname, '..', 'static', 'datasets');
-      if (fs.existsSync(filePath + '/' + fileName)) {
-        return fs.readFileSync(filePath + '/' + fileName);
+      if (fs.existsSync(filePath + '\\' + fileName)) {
+        return fs.readFileSync(filePath + '\\' + fileName);
       }
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
     } catch (error) {
