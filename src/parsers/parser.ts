@@ -1,12 +1,28 @@
 import * as XLSX from 'xlsx';
 
-function setNullAsZero(dataset: XLSX.WorkBook, datasetPages: string[]) {
-  const titles = returnAllTitle(dataset, datasetPages);
-  const stopColumn = String.fromCharCode('A'.charCodeAt(0) + titles.length);
-  const everyColumnOfTable = [];
-  for (let i = 0; i < titles.length; i++) {
-    everyColumnOfTable.push(String.fromCharCode('A'.charCodeAt(0) + i));
-  }
+export function setNullAsZero(dataset: XLSX.WorkBook, datasetPages: string) {
+  const titles = returnAllTitle(dataset, [datasetPages]);
+  const sheet_name_list = dataset.SheetNames;
+  let jsonPagesArray = [];
+  sheet_name_list.forEach(function (sheet) {
+    if (sheet === datasetPages) {
+      const jsonPage = {
+        name: sheet,
+        content: XLSX.utils.sheet_to_json(dataset.Sheets[sheet], {
+          defval: 0,
+        }),
+      };
+      jsonPagesArray.push(jsonPage);
+    }
+  });
+
+  jsonPagesArray[0].content.forEach((el) => {
+    for (const key in el) {
+      if (key.includes('__')) delete el[key];
+    }
+  });
+
+  return jsonPagesArray[0].content;
 }
 
 const parser = (columns: string[], strings: any) => {
@@ -25,7 +41,10 @@ const parser = (columns: string[], strings: any) => {
   return array;
 };
 
-function returnAllRegions(dataset: XLSX.WorkBook, datasetPages: string[]) {
+export function returnAllRegions(
+  dataset: XLSX.WorkBook,
+  datasetPages: string[],
+) {
   const regions = [];
 
   for (let i = 0; i < datasetPages.length; i++) {
@@ -44,10 +63,9 @@ function returnAllRegions(dataset: XLSX.WorkBook, datasetPages: string[]) {
       }
     }
   }
-
   return regions;
 }
-function returnAllTitle(dataset: XLSX.WorkBook, datasetPages: string[]) {
+export function returnAllTitle(dataset: XLSX.WorkBook, datasetPages: string[]) {
   const titles = [];
 
   for (let i = 0; i < datasetPages.length; i++) {
@@ -70,11 +88,31 @@ function returnAllTitle(dataset: XLSX.WorkBook, datasetPages: string[]) {
   return titles;
 }
 
+export async function parseToSectionV2(dataset: XLSX.WorkBook, page: string) {
+  const datasetPages = page ? [page] : ['Р1'];
+  const pages = page ? page : 'Р1';
+  const filledDataset = setNullAsZero(dataset, pages);
+  const regions = returnAllRegions(dataset, datasetPages);
+  const titles = returnAllTitle(dataset, datasetPages);
+  // console.log(regions);
+  // console.log(titles);
+
+  // filledDataset.forEach((element) => {
+  //   for (const key in element) {
+  //     if (!titles.includes(key)) {
+  //       delete element[key];
+  //     }
+  //   }
+  // });
+  return filledDataset;
+}
+
 export async function parserToFirstSection(
   dataset: XLSX.WorkBook,
   page: string,
 ) {
   const datasetPages = [page || 'Р1'];
+  const filledDataset = setNullAsZero(dataset, page);
   const regions = returnAllRegions(dataset, datasetPages);
   const titles = returnAllTitle(dataset, datasetPages);
   const stopColumn = String.fromCharCode('A'.charCodeAt(0) + titles.length);
@@ -82,8 +120,6 @@ export async function parserToFirstSection(
   for (let i = 0; i < titles.length; i++) {
     everyColumnOfTable.push(String.fromCharCode('A'.charCodeAt(0) + i));
   }
-  // console.log('stop', stopColumn);
-  // console.log(everyColumnOfTable);
 
   for (let i = 0; i < datasetPages.length; i++) {
     if (
@@ -97,7 +133,7 @@ export async function parserToFirstSection(
     let counterString = 2;
     let counterColumn = 0;
     let cell = everyColumnOfTable[counterColumn] + counterString;
-    for (let j = 0; j < 200; j++) {
+    for (let j = 0; j < page.length; j++) {
       const element = page[j];
       if (
         element[0].includes('!') ||
@@ -114,14 +150,7 @@ export async function parserToFirstSection(
         counterColumn = 0;
         cell = everyColumnOfTable[counterColumn] + counterString;
       }
-      // console.log(
-      //   cell,
-      //   element[0],
-      //   counterColumn,
-      //   everyColumnOfTable[counterColumn],
-      // );
       if (cell != element[0]) {
-        console.log(cell, element[0]);
         newArray.push(0);
         counterColumn++;
       }
