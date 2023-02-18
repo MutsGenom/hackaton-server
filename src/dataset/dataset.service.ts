@@ -26,7 +26,7 @@ export class DatasetService {
     const wb = XLSX.read(file, { type: 'buffer' });
     switch (readAs) {
       case 'xlsx':
-        const sheets = parserToFirstSection(wb, page);
+        const sheets = parseToSectionV2(wb, page);
         return sheets;
       case 'csv':
         return wb;
