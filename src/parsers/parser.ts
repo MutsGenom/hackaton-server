@@ -94,13 +94,16 @@ export async function parseToSectionV2(dataset: XLSX.WorkBook, page: string) {
   const filledDataset = setNullAsZero(dataset, pages);
   const regions = returnAllRegions(dataset, datasetPages);
   const titles = returnAllTitle(dataset, datasetPages);
-  filledDataset.forEach((element) => {
-    for (const key in element) {
-      if (!titles.includes(key)) {
-        delete element[key];
-      }
-    }
-  });
+  // console.log(regions);
+  // console.log(titles);
+
+  // filledDataset.forEach((element) => {
+  //   for (const key in element) {
+  //     if (!titles.includes(key)) {
+  //       delete element[key];
+  //     }
+  //   }
+  // });
   return filledDataset;
 }
 
