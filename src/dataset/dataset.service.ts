@@ -36,7 +36,7 @@ export class DatasetService {
       case 'regions':
         return returnAllRegions(wb, ['Р1']);
       case 'test':
-        return parseToSectionV2(wb, page);
+        return setNullAsZero(wb, '1.2.2.');
       case 'title':
         return {
           titles: returnAllTitle(wb, [page]),
