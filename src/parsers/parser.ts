@@ -1,13 +1,14 @@
 import * as XLSX from 'xlsx';
 
 export function setNullAsZero(dataset: XLSX.WorkBook, datasetPages: string) {
+  // console.log(dataset);
+
   const titles = returnAllTitle(dataset, [datasetPages]);
   const sheet_name_list = dataset.SheetNames;
   let jsonPagesArray = [];
   sheet_name_list.forEach(function (sheet) {
     if (sheet === datasetPages) {
       const jsonPage = {
-        name: sheet,
         content: XLSX.utils.sheet_to_json(dataset.Sheets[sheet], {
           defval: 0,
         }),
@@ -15,13 +16,11 @@ export function setNullAsZero(dataset: XLSX.WorkBook, datasetPages: string) {
       jsonPagesArray.push(jsonPage);
     }
   });
-
   jsonPagesArray[0].content.forEach((el) => {
     for (const key in el) {
       if (key.includes('__')) delete el[key];
     }
   });
-
   return jsonPagesArray[0].content;
 }
 
