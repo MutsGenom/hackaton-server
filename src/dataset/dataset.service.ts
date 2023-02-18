@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { FilesService } from '../files/files.service';
 import * as XLSX from 'xlsx';
+import { log } from 'console';
+import { parseToSectionV2, returnAllTitle } from '../parsers/parser';
 import {
   parseFromYearStatistic,
   parserToFirstSection,
+  returnAllRegions,
+  setNullAsZero,
 } from 'src/parsers/parser';
 
 @Injectable()
@@ -12,23 +16,32 @@ export class DatasetService {
 
   async createDataset(file: any, extension: string) {
     const fileName = await this.fileService.createDataset(file, extension);
-    return fileName;
+    console.log(String(fileName));
+
+    return String(fileName);
   }
 
   async returnDataset(fileName: string, readAs?: string, page?: string) {
     const file = await this.fileService.returnFile(fileName);
+    const wb = XLSX.read(file, { type: 'buffer' });
     switch (readAs) {
       case 'xlsx':
-        const wb = XLSX.read(file, { type: 'buffer' });
         const sheets = parserToFirstSection(wb, page);
         return sheets;
       case 'csv':
-        const csv = XLSX.read(file, { type: 'buffer' });
-        return csv;
+        return wb;
       case 'yearsStat':
-        const forYears = XLSX.read(file, { type: 'buffer' });
-        const sheetsForYear = parseFromYearStatistic(forYears);
+        const sheetsForYear = parseFromYearStatistic(wb);
         return sheetsForYear;
+      case 'regions':
+        return returnAllRegions(wb, ['Р1']);
+      case 'test':
+        return parseToSectionV2(wb, page);
+      case 'title':
+        return {
+          titles: returnAllTitle(wb, [page]),
+          content: await parseToSectionV2(wb, page),
+        };
       default:
         return file;
     }
